@@ -37,7 +37,7 @@ curl_setopt($user_profiles_url, CURLOPT_HTTPHEADER, array(
 $user_profiles_output = curl_exec($user_profiles_url);
 $user_json_obj = json_decode($user_profiles_output);
 $displayname = $user_json_obj->contacts{0}->displayName;
-//curl_close($user_profiles_url);
+curl_close($user_profiles_url);
 
 //date, mid, displayName, text, contentType, location をログ出力
 date_default_timezone_set('Asia/Tokyo');
