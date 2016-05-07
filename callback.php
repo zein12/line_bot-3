@@ -47,7 +47,7 @@ file_put_contents($log_file, date("Y/m/d H:i:s") . " " . "mid:" . $to . "," . "d
 // glob で取得した画像総数を max に代入し、ランダムで選ばれた配列番号を num_list に代入
 // パスを変換し、末尾に画像ファイル名を追加
 $pic_array  = glob ("< 画像のパス >");
-$max = count($array);
+$max = count($pic_array);
 $num_list = array_rand(range(1,$max),1);
 $pic = str_replace(< ファイル名から URL に変換する。必要に応じて書き換えて  >);
 
