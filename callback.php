@@ -13,12 +13,13 @@ $pic_dir = "$document_root" . "< 画像が格納されているディレクト�
 //time zone
 date_default_timezone_set('Asia/Tokyo');
 
-//ユーザ情報取得
+// 関数群
+//ユーザ情報取得する関数
 function getDisplayName($to_mid){
     global $channel_id;
     global $channel_secret;
     global $bot_mid;
-    $user_profiles_url = curl_init("https://trialbot-api.line.me/v1/profiles?mids={$to_mid}");
+    $user_profiles_url = curl_init("https://trialbot-api.line.me/v1/profiles?mids=${to_mid}");
     curl_setopt($user_profiles_url, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($user_profiles_url, CURLOPT_HTTPHEADER, array(
         "X-Line-ChannelID: $channel_id",
@@ -32,6 +33,19 @@ function getDisplayName($to_mid){
     curl_close($user_profiles_url);
 }
 
+//POSTするデータを作成する関数
+function create_post_data($to_mid, $post_content){
+    // toChannelとeventTypeは固定値なので、変更不要。
+    global $post_data;
+    $post_data = [
+        "to"=>[$to_mid],
+        "toChannel"=>"1383378250",
+        "eventType"=>"138311608800106203",
+        "content"=>$post_content
+    ];
+}
+
+//相手に会話する内容をPOSTする関数
 function post($post_data){
     global $channel_id;
     global $channel_secret;
@@ -52,16 +66,6 @@ function post($post_data){
 }
 
 // 相手からメッセージ受信
-/* to: 相手の mid
-   location: location
-   text: 送られてきた文字列
-   contenttype: 送られてきたメッセージタイプ
-     1: text
-     2: picture
-     3: movie
-     4: voice
-     7: location
-     8: sticker(stamp) */
 $recieve_json_string = file_get_contents('php://input');
 $recieve_jsonObj = json_decode($recieve_json_string);
 $to = $recieve_jsonObj->{"result"}[0]->{"content"}->{"from"};
@@ -72,43 +76,30 @@ $op_type = $recieve_jsonObj->{"result"}[0]->{"content"}->{"opType"};
 $params = $recieve_jsonObj->{"result"}[0]->{"content"}->{"params"};
 
 //DisplayName 取得
-//date, mid, displayName, text, contentType, location をログ出力
+//date, mid, displayName, text, contentType をログ出力
 getDisplayName($to);
-file_put_contents($log_file, date("Y/m/d H:i:s") . " " . "mid:" . $to . "," . "displayName:" . $displayname . "," . "text:" . $text . "," . "contentType:" . $content_type . "," . "location:" . $location . PHP_EOL, FILE_APPEND);
+file_put_contents($log_file, date("Y/m/d H:i:s") . " mid:${to}, displayName:${displayname}, text:${text}, contentType:${content_type}" . PHP_EOL, FILE_APPEND);
 
-// invite new friend 
-if( $op_type == 4 ){
-    //DisplayName 取得
+//会話処理
+if( $op_type === 4 ){
+    // 友達登録時に会話する
     getDisplayName($params[0]);
-    $response_format_text = ['contentType'=>1,"toType"=>1,"text"=>"飯テロ BOT の登録ありがとうございます, " . "$displayname" . "さん."];
-    $post_data = [
-        "to"=>[$params[0]],
-        "toChannel"=>"1383378250",
-        "eventType"=>"138311608800106203",
-        "content"=>$response_format_text
-    ];
-    // POST するよ
+    $response_format_text = ['contentType'=>1,"toType"=>1,"text"=>"飯テロ BOT の登録ありがとうございます, ${displayname}さん."];
+    create_post_data($params[0], $response_format_text);
+    post($post_data);
+} else if( $op_type === 8 ){
+    // ブロック時はなにもせず正常終了する
+    exit(0);
+} else {
+    // 送信する画像をランダムで選ぶ
+    // glob で取得した画像総数を max に代入し、ランダムで選ばれた配列番号を num_list に代入
+    // パスを変換し、末尾に画像ファイル名を追加
+    $pic_array  = glob ("${pic_dir}*.jpg");
+    $max = count($pic_array);
+    $num_list = array_rand(range(1,$max),1);
+    $pic = str_replace($document_root,"$server_url",$pic_array[$num_list]);
+    
+    $response_format_image = ['contentType'=>2,"toType"=>1,'originalContentUrl'=>"$pic","previewImageUrl"=>"$pic"];
+    create_post_data($to, $response_format_image);
     post($post_data);
 }
-
-
-// 送信する画像をランダムで選ぶ
-// glob で取得した画像総数を max に代入し、ランダムで選ばれた配列番号を num_list に代入
-// パスを変換し、末尾に画像ファイル名を追加
-$pic_array  = glob ("$pic_dir" . "*.jpg");
-$max = count($pic_array);
-$num_list = array_rand(range(1,$max),1);
-$pic = str_replace($document_root,"$server_url",$pic_array[$num_list]);
-
-// toChannelとeventTypeは固定値なので、変更不要。
-// 画像送信の postdata 作成
-$response_format_image = ['contentType'=>2,"toType"=>1,'originalContentUrl'=>"$pic","previewImageUrl"=>"$pic"];
-$post_data = [
-    "to"=>[$to],
-    "toChannel"=>"1383378250",
-    "eventType"=>"138311608800106203",
-    "content"=>$response_format_image
-];
-
-// POST するよ
-post($post_data);
