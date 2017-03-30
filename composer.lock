@@ -43,7 +43,7 @@
                 {
                     "name": "MJ",
                     "email": "jen.zein@gmail.com"
-                },
+                }
                
             ],
             "description": "SDK of the LINE BOT API for PHP",
