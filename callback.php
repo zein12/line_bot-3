@@ -1,17 +1,17 @@
 <?php
 // BOT の Channel ID, Channel Secret, MID を入力
-$channel_id = "< Channel ID >";
-$channel_secret = "< Channel Secret >";
-$bot_mid = "< MID >";
+$channel_id = "<1497601714>";
+$channel_secret = "<a6b4b1a80d9f25eb0a719fc92cef7d86>";
+$bot_mid = "<u813b14dcc0c637534ead87aab65534da>";
 
 //変数群
-$log_file = "< ログファイルのパス && ファイル名 >";
+$log_file = "<Path && nama file dari file log>";
 $server_url = "< ServerName >";
 $document_root = "< Documentroot >";
-$pic_dir = "$document_root" . "< 画像が格納されているディレクトリ >";
+$pic_dir = "$document_root" . "<Direktori dimana gambar disimpan>";
 
 //time zone
-date_default_timezone_set('Asia/Tokyo');
+date_default_timezone_set('Asia/Jakarta');
 
 // 関数群
 //ユーザ情報取得する関数
@@ -84,7 +84,7 @@ file_put_contents($log_file, date("Y/m/d H:i:s") . " mid:${to}, displayName:${di
 if( $op_type === 4 ){
     // 友達登録時に会話する
     getDisplayName($params[0]);
-    $response_format_text = ['contentType'=>1,"toType"=>1,"text"=>"飯テロ BOT の登録ありがとうございます, ${displayname}さん."];
+    $response_format_text = ['contentType'=>1,"toType"=>1,"text"=>"Terima kasih untuk sudah menambah bot ini, ${displayname}Mas."];
     create_post_data($params[0], $response_format_text);
     post($post_data);
 } else if( $op_type === 8 ){
